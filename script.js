@@ -70,14 +70,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Настройка зон для drop
+    // Улучшенная логика drag-and-drop
     columns.forEach(column => {
         const cardsContainer = column.querySelector('.cards-container');
+        
+        // Подсветка колонки при наведении
+        cardsContainer.addEventListener('dragenter', function(e) {
+            e.preventDefault();
+            this.parentElement.style.boxShadow = '0 0 10px rgba(52, 152, 219, 0.5)';
+        });
         
         cardsContainer.addEventListener('dragover', function(e) {
             e.preventDefault();
             const afterElement = getDragAfterElement(cardsContainer, e.clientY);
-            const draggable = document.querySelector('.card[draggable="true"]');
+            const draggable = document.querySelector('.card.dragging');
+            
+            if (!draggable) return;
             
             if (afterElement == null) {
                 cardsContainer.appendChild(draggable);
@@ -85,6 +93,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 cardsContainer.insertBefore(draggable, afterElement);
             }
         });
+        
+        // Сброс подсветки
+        cardsContainer.addEventListener('dragleave', function() {
+            this.parentElement.style.boxShadow = '';
+        });
+        
+        // Обработка окончания перетаскивания
+        cardsContainer.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.parentElement.style.boxShadow = '';
+        });
+    });
+    
+    // Добавляем класс при начале перетаскивания
+    document.addEventListener('dragstart', function(e) {
+        if (e.target.classList.contains('card')) {
+            e.target.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', e.target.dataset.id || 'card');
+        }
+    });
+    
+    // Убираем класс после перетаскивания
+    document.addEventListener('dragend', function(e) {
+        if (e.target.classList.contains('card')) {
+            e.target.classList.remove('dragging');
+        }
     });
     
     // Вспомогательная функция для определения позиции
